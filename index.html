@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Generate Kode Unik</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', Courier, monospace;
+      background: black;
+      color: #00ff00;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+    .header {
+      font-size: 5.5vw;
+      font-weight: bold;
+      color: #00ff00;
+      white-space: nowrap;
+      overflow: hidden;
+      border-right: 2px solid #00ff00;
+      animation: typing 4s steps(30, end) forwards, blink 0.7s step-end infinite;
+      z-index: 2;
+    }
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+    @keyframes blink {
+      50% { border-color: transparent; }
+      100% { border-color: #00ff00; }
+    }
+    .container {
+      margin-top: 20px;
+      width: 90%;
+      max-width: 500px;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    input {
+      width: 90%;
+      max-width: 300px;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-size: 5vw;
+      border-radius: 5px;
+      border: none;
+      text-align: center;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 5vw;
+      background: #00ff00;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+    #codeResult {
+      margin: 20px 0;
+      font-size: 10vw;
+      color: #00ff00;
+    }
+    #countdown {
+      font-size: 5vw;
+      color: yellow;
+      margin: 20px 0;
+      white-space: pre-line;
+    }
+    #warningTextWrapper {
+      width: 100%;
+      overflow-x: hidden;
+      margin-top: 10px;
+      z-index: 2;
+      display: block;
+    }
+    #warningText {
+      display: inline-block;
+      font-size: 5vw;
+      font-weight: bold;
+      color: red;
+      white-space: nowrap;
+      animation: scroll 7s linear infinite;
+      min-width: 200%;
+    }
+    @keyframes scroll {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    @media (min-width: 600px) {
+      .header { font-size: 4vw; }
+      input, button, #codeResult, #countdown, #warningText { font-size: 2vw; }
+    }
+    @media (min-width: 992px) {
+      .header { font-size: 2vw; }
+      input, button, #codeResult, #countdown, #warningText { font-size: 1.5vw; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<div class="header" id="headerTitle">🔒 KODE UNIK MANCINGDUIT</div>
+
+<div class="container">
+  <input type="text" id="usernameInput" placeholder="Masukkan ID Username" />
+  <button id="generateBtn">Generate Kode Unik</button>
+  <div id="codeResult"></div>
+  <div id="countdown"></div>
+  <div id="warningTextWrapper">
+    <div id="warningText"></div>
+  </div>
+</div>
+
+<script type="module">
+  import allowedUsernames from './usernames.js';
+
+  const generateBtn = document.getElementById("generateBtn");
+  const input = document.getElementById("usernameInput");
+
+  generateBtn.addEventListener("click", generateCode);
+  input.addEventListener("keypress", function(event) {
+    if (event.key === "Enter") generateCode();
+  });
+
+  function generateCode() {
+    const username = input.value.trim();
+    if (username === "") {
+      alert("Masukkan dulu ID Username kamu!");
+      return;
+    }
+    if (!allowedUsernames.includes(username)) {
+      alert("ID Username tidak valid atau tidak terdaftar!");
+      return;
+    }
+
+    const randomCode = Math.floor(Math.random() * 900) + 100;
+    document.getElementById("codeResult").innerText = randomCode;
+    document.getElementById("warningText").innerText =
+      "Silahkan deposit sesuai kode unik 👉 Rp.100." + randomCode;
+
+    generateBtn.disabled = true;
+    generateBtn.innerText = "Kode Sudah Dibuat!";
+    input.disabled = true;
+    document.getElementById("headerTitle").innerText = "🔓 KODE UNIK MANCINGDUIT";
+
+    startCountdown();
+  }
+
+  function startCountdown() {
+    const countdownElement = document.getElementById("countdown");
+    let timeLeft = 15;
+    const countdownInterval = setInterval(() => {
+      countdownElement.innerHTML =
+        "Kamu akan diarahkan ke situs MANCINGDUIT\n" +
+        "dalam " + timeLeft + " detik...";
+      timeLeft--;
+
+      if (timeLeft < 0) {
+        clearInterval(countdownInterval);
+        countdownElement.innerText = "Mengalihkan...";
+        setTimeout(() => {
+          window.location.href = "https://mancingduit31300.com";
+        }, 500);
+      }
+    }, 1000);
+  }
+
+  const c = document.getElementById("matrix");
+  const ctx = c.getContext("2d");
+  let letters = "アァイィウエオカキクケコサシスセソタチツテトナニヌネノ".split("");
+  let fontSize = 14;
+  let columns = window.innerWidth / fontSize;
+  let drops = Array(Math.floor(columns)).fill(1);
+
+  function draw() {
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = "#0F0";
+    ctx.font = fontSize + "px monospace";
+
+    drops.forEach((y, i) => {
+      let text = letters[Math.floor(Math.random() * letters.length)];
+      ctx.fillText(text, i * fontSize, y * fontSize);
+      if (y * fontSize > c.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+
+  window.addEventListener('resize', () => {
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+    columns = Math.floor(c.width / fontSize);
+    drops = Array(columns).fill(1);
+  });
+
+  c.width = window.innerWidth;
+  c.height = window.innerHeight;
+</script>
+
+</body>
+</html>
